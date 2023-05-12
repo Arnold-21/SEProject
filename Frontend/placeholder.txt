@@ -1,0 +1,1 @@
+You can delete this, it's only to setup up the frontend folder
