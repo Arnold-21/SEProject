@@ -4,3 +4,4 @@
 3. I dont recommend to publish your feature branches but if you want to do it, name it like: development-FeatureName
 4. When you merge to the development version, switch to it, pull new features, than merge, so there's less headeaches down the road
 5. Always make sure to name things correctly, so there is not many merge conflicts(mostly talking about file names, no asd etc.)
+6. Always name your commits well, no random commit names
