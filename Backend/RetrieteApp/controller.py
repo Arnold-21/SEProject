@@ -6,6 +6,8 @@ from django.core.mail import send_mail
 import random
 import re
 
+from .serializers import UserSerializer
+
 User = get_user_model()
 
 #Registering a new user
@@ -57,27 +59,45 @@ def saveUser(data):
         fail_silently=False,
     )
 
-    return (False, "")
+    return (False, "Register Successful")
 
 #Given the confirmation code sent via email, active the account of the user
 def confirmRegistration(code):
-        #Checking if user object with given confirmation code exists
-        try:
-            user = User.objects.get(confirmation_code=code)
-        except:
-            return (True, "Invalid activation Code")
-        if user is None:
-            return (True, "User with given activation code not found")
+    #Checking if user object with given confirmation code exists
+    try:
+        user = User.objects.get(confirmation_code=code)
+    except:
+        return (True, "Invalid activation Code")
+    if user is None:
+        return (True, "User with given activation code not found")
+    
+    #Checking if the activation was within 10 minutes
+    currentTime = timezone.now()
+    if (currentTime - user.confirmation_start).total_seconds()/60 >= 10:
+        user.delete()
+        return (True, "Activation exceeded 10 minutes, register again")
+    
+    #Updating the user profile
+    user.confirmation_code = None
+    user.confirmation_start = None
+    user.is_active = True
+    user.save()
+    return (False, "Activation Successfull")
+
+#Change user data
+def updateUser(data, id):
+    #Check if neccesarry data is present
+    if len(data) > 4:
+         return (True, "Invalid data")
+    permitted_data = ["first_name", "last_name", "email"]
+    for key in data.keys():
+         if key not in permitted_data:
+              return (True, "Invalid data")
+         
+    user = User.objects.get(id=id)
+    serializer = UserSerializer(instance=user, data=data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+    else: return (True, "Invalid data")
         
-        #Checking if the activation was within 10 minutes
-        currentTime = timezone.now()
-        if (currentTime - user.confirmation_start).total_seconds()/60 >= 10:
-            user.delete()
-            return (True, "Activation exceeded 10 minutes, register again")
-        
-        #Updating the user profile
-        user.confirmation_code = None
-        user.confirmation_start = None
-        user.is_active = True
-        user.save()
-        return (False, "Activation Successfull")
+    return (False, "Update Succesfull")

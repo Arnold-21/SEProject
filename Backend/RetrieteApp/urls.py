@@ -9,4 +9,5 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view()),
     path('api/register/', RegisterView.as_view()),
     path('api/register/confirm/<int:code>/', RegisterConfirmView.as_view()),
+    path('api/user/<int:id>/', UserDetailView.as_view()),
 ]
