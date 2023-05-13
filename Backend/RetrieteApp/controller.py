@@ -59,16 +59,16 @@ def saveUser(data):
         fail_silently=False,
     )
 
-    return (False, "Register Successful")
+    return (False, user.id)
 
 #Given the confirmation code sent via email, active the account of the user
-def confirmRegistration(code):
+def confirmRegistration(code, id):
     #Checking if user object with given confirmation code exists
     try:
-        user = User.objects.get(confirmation_code=code)
+        user = User.objects.get(id=id)
     except:
         return (True, "Invalid activation Code")
-    if user is None:
+    if user is None or user.confirmation_code != str(code):
         return (True, "User with given activation code not found")
     
     #Checking if the activation was within 10 minutes

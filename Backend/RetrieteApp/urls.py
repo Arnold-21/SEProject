@@ -8,6 +8,6 @@ urlpatterns = [
     path('api/token/', myTokenObtainPariView.as_view()),
     path('api/token/refresh/', TokenRefreshView.as_view()),
     path('api/register/', RegisterView.as_view()),
-    path('api/register/confirm/<int:code>/', RegisterConfirmView.as_view()),
+    path('api/register/confirm/<int:code>/<int:id>/', RegisterConfirmView.as_view()),
     path('api/user/<int:id>/', UserDetailView.as_view()),
 ]

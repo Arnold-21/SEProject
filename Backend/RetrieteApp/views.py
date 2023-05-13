@@ -22,8 +22,8 @@ class RegisterView(APIView):
         return Response({"success": message}, status=status.HTTP_200_OK)
     
 class RegisterConfirmView(APIView):
-    def get(self, request, code, *args, **kwargs):
-        error, message = confirmRegistration(code)
+    def get(self, request, code, id, *args, **kwargs):
+        error, message = confirmRegistration(code, id)
         if error:
             return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"success": message}, status=status.HTTP_200_OK)
