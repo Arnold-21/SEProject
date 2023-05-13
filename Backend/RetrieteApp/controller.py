@@ -89,7 +89,7 @@ def updateUser(data, id):
     #Check if neccesarry data is present
     if len(data) > 4:
         return (True, "Invalid data")
-    permitted_data = ["first_name", "last_name", "email"]
+    permitted_data = ["first_name", "last_name", "email", "password"]
     for key in data.keys():
         if key not in permitted_data:
             return (True, "Invalid data")
