@@ -169,3 +169,16 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = "RetrieteApp.User"
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = '587'
+EMAIL_HOST_USER = 'leaguelizer@gmail.com'
+EMAIL_HOST_PASSWORD = 'twfggjzhfluwzbvu'
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+# EMAIL_HOST_USER = 'd8ee01fbd17e39'
+# EMAIL_HOST_PASSWORD = '2807e15980237d'
+# EMAIL_PORT = '2525'

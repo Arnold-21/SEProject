@@ -47,7 +47,7 @@ class User(AbstractUser):
     email = models.EmailField(verbose_name="Email", max_length=255, unique=True)
     username = None
     role = models.CharField(max_length=30, choices=Role.choices, default='Regular')
-    confirmation_code = models.CharField(max_length=20, blank=True, null=True)
+    confirmation_code = models.CharField(max_length=20, blank=True, null=True, unique=True)
     confirmation_start = models.DateTimeField(blank=True, null=True)
 
     objects = UserManager()
