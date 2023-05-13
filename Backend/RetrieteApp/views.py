@@ -1,10 +1,12 @@
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import status, generics
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import *
 from .controller import *
+from .permissions import *
 
 User = get_user_model()
 
@@ -33,6 +35,7 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = "id"
+    permission_classes = [IsAuthenticated, isUserObjectPermission]
 
     def put(self, request, id, *args, **kwargs):
         error, message = updateUser(request.data, id)
