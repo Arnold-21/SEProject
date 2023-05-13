@@ -39,3 +39,19 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
         if error:
             return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"success": message}, status=status.HTTP_200_OK)
+    
+#View to send change password code
+class UserPasswordGetCode(APIView):
+    def post(self, request, *args, **kwargs):
+        error, message = sendRecoveryCode(request.data.get("email"))
+        if error:
+            return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"success": message}, status=status.HTTP_200_OK)
+
+#View to actually change the password
+class UserPasswordChange(APIView):
+    def put(self, request, id, code, *args, **kwargs):
+        error, message = recoverPassword(request.data, id, code)
+        if error:
+            return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"success": message}, status=status.HTTP_200_OK)

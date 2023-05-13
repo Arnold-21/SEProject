@@ -88,11 +88,17 @@ def confirmRegistration(code, id):
 def updateUser(data, id):
     #Check if neccesarry data is present
     if len(data) > 4:
-         return (True, "Invalid data")
+        return (True, "Invalid data")
     permitted_data = ["first_name", "last_name", "email"]
     for key in data.keys():
-         if key not in permitted_data:
-              return (True, "Invalid data")
+        if key not in permitted_data:
+            return (True, "Invalid data")
+        
+    if data.get("email"):
+        try:
+            validate_email(data.get("email"))
+        except ValidationError:
+                return (True, "Incorrect email format")
          
     user = User.objects.get(id=id)
     serializer = UserSerializer(instance=user, data=data, partial=True)
@@ -101,3 +107,60 @@ def updateUser(data, id):
     else: return (True, "Invalid data")
         
     return (False, "Update Succesfull")
+
+#Send a password code via email
+def sendRecoveryCode(email):
+    #Check if email is in the database
+    if email is None:
+        return (True, "Email was not given")
+    try:
+        user = User.objects.get(email=email)
+    except:
+        return (True, "User with given email was not found")
+    
+    #Check if the user is active
+    if not user.is_active:
+        return (True, "User with given email was not found")
+    
+    #Get the code for the password reset
+    random.seed(timezone.now().timestamp())
+    confirmationCode = str(random.randint(a=100000, b=999999))
+    confirmationTime = timezone.now()
+    user.confirmation_code=confirmationCode
+    user.confirmation_start=confirmationTime
+    user.save()
+
+    send_mail(
+        "Password reset",
+        "Your Password reset code: " + confirmationCode,
+        "noreply@retriete.com",
+        [user.email],
+        fail_silently=False,
+    )
+
+    return (False, user.id)
+
+#Change user data
+def recoverPassword(data, id, code):
+    #Check if neccesarry data is present and if it's correct
+    if not data.get("password"):
+        return (True, "Password not given")
+    if not re.search("[a-z]", data.get("password")) or not re.search("[A-Z]", data.get("password")) or not re.search("[0-9]", data.get("password")) or not re.search("[\.,\$\+]", data.get("password")) or len(data.get("password")) < 8:
+        return (True, "Password need to contain a-z, A-Z, 0-9 and one of the following characters [.,$+]")
+         
+    #Check user data, if the password can truly be changed
+    user = User.objects.get(id=id)
+    if user.confirmation_code != str(code) or user.confirmation_code is None:
+        return (True, "Invalid authentification code given!")
+    
+    currentTime = timezone.now()
+    if (currentTime - user.confirmation_start).total_seconds()/60 >= 10:
+        user.confirmation_code = None
+        user.confirmation_start = None
+        return (True, "Password reset exceededed 10 minutes, try again")
+
+    #Change the password
+    user.set_password(data.get("password"))
+    user.save()
+        
+    return (False, "Password changed Succesfull")
