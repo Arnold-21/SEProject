@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+import datetime
+import os
 
 # Creating user model and usermanager, for django cli usercreation
 class UserManager(BaseUserManager):
@@ -54,3 +56,27 @@ class User(AbstractUser):
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["last_name", "first_name"]
+
+
+#modell for the destination objects
+def filepath(request, filename):
+    timeNow = datetime.datetime.now().strftime('%Y%m%d%H:%M:%S')
+    name = "%s%s" % (timeNow, filename)
+    return os.path.join('images/', name)
+
+class Geolocation(models.Model):
+    country = models.CharField(max_length=100)
+    county = models.CharField(max_length=100)
+    settlement = models.CharField(max_length=100)
+    street = models.CharField(max_length=100)
+    number = models.CharField(max_length=100)
+
+class Destination(models.Model):
+    title = models.CharField(max_length=100)
+    description = models.TextField()
+    arrivalDate = models.DateField()
+    leaveDate = models.DateField()
+    image = models.ImageField(upload_to=filepath, default='images/default.jpg')
+    isPublic = models.BooleanField(default=False)
+    userID = models.ForeignKey(User, related_name="user", on_delete=models.CASCADE, null=True)
+    location = models.ForeignKey(Geolocation, related_name="location", on_delete=models.CASCADE, null=True)

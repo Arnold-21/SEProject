@@ -6,7 +6,8 @@ from django.core.mail import send_mail
 import random
 import re
 
-from .serializers import UserSerializer
+from .serializers import *
+from models import *
 
 User = get_user_model()
 
@@ -164,3 +165,22 @@ def recoverPassword(data, id, code):
     user.save()
         
     return (False, "Password changed Succesfull")
+
+#Function to filter destination by private bucket list
+def getPrivateBucketList(id, page):
+    return DestinationSerializer(Destination.objects.filter(userID=id)[(page - 1)*20:page*20], many=True).data
+
+#Function to change a destination to public list
+def PrivateToPublic(id):
+    #Get the object with given id
+    dest: Destination = Destination.objects.get(id=id)
+    if dest.isPublic == True:
+        return (True, "Destination is already public")
+    
+    dest.isPublic = True
+    dest.save()
+    return (False, "Destination added to public list succesfully!")
+
+#Function to filter the public pages
+def getPublicList(page):
+    return DestinationSerializer(Destination.objects.filter(isPublic=True)[(page - 1)*20:page*20], many=True).data
