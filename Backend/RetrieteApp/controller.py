@@ -7,7 +7,7 @@ import random
 import re
 
 from .serializers import *
-from models import *
+from .models import *
 
 User = get_user_model()
 
@@ -184,3 +184,76 @@ def PrivateToPublic(id):
 #Function to filter the public pages
 def getPublicList(page):
     return DestinationSerializer(Destination.objects.filter(isPublic=True)[(page - 1)*20:page*20], many=True).data
+
+#Fucntion to save destination
+def postDestinationHandler(request, id, version):
+    data = request.data
+    destData = {}
+    destData["title"] = data.get("title")
+    destData["description"] = data.get("description")
+    destData["arrivalDate"] = data.get("arrivalDate")
+    destData["leaveDate"] = data.get("leaveDate")
+    destData["image"] = data.get("image")
+    destData["location"] = id
+    destData["userID"] = request.user.id
+    if version == "Public":
+        destData["isPublic"] = True
+
+    print(destData)
+
+    serializer = SimpleDestinationSerializer(data=destData)
+    if serializer.is_valid():
+        serializer.save()
+        return (False, serializer.data)
+    else:
+        return (True, "Invalid parameters")
+    
+#Fucntion to update Destination
+def putDestinationHandler(data, dest):
+    destData = {}
+    if data.get("title") is not None:
+        destData["title"] = data.get("title")
+    if data.get("description") is not None:
+        destData["description"] = data.get("description")
+    if data.get("arrivalDate") is not None:
+        destData["arrivalDate"] = data.get("arrivalDate")
+    if data.get("leaveDate") is not None:
+        destData["leaveDate"] = data.get("leaveDate")
+    if data.get("image") is not None:
+        destData["image"] = data.get("image")
+    if data.get("userID") is not None:
+        destData["userID"] = data.get("userID")
+
+    serializer = SimpleDestinationSerializer(instance=dest, data=destData, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return (False, serializer.data)
+    else:
+        return (True, "Invalid parameters")
+    
+#Fucntion to update Destination for Admin
+def putAdminDestinationHandler(data, dest):
+    destData = {}
+    if data.get("title") is not None:
+        destData["title"] = data.get("title")
+    if data.get("description") is not None:
+        destData["description"] = data.get("description")
+    if data.get("arrivalDate") is not None:
+        destData["arrivalDate"] = data.get("arrivalDate")
+    if data.get("leaveDate") is not None:
+        destData["leaveDate"] = data.get("leaveDate")
+    if data.get("image") is not None:
+        destData["image"] = data.get("image")
+    if data.get("userID") is not None:
+        destData["userID"] = data.get("userID")
+    if data.get("isPublic") is not None:
+        destData["isPublic"] = data.get("isPublic")
+
+    serializer = SimpleDestinationSerializer(instance=dest, data=destData, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return (False, serializer.data)
+    else:
+        return (True, "Invalid parameters")
+    
+    

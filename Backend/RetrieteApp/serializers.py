@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
-from models import *
+from .models import *
 
 User = get_user_model()
 
@@ -30,8 +30,13 @@ class GeolocationSerializer(serializers.ModelSerializer):
 
 #Destination Serializer
 class DestinationSerializer(serializers.ModelSerializer):
-    location = GeolocationSerializer()
+    location = GeolocationSerializer(read_only=True)
     
     class Meta:
-        modeel = Destination
+        model = Destination
+        fields = "__all__"
+
+class SimpleDestinationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Destination
         fields = "__all__"
