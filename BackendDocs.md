@@ -8,7 +8,7 @@
     - Given the username and password gives back an access and refresh token, which is used for authentication
     - POST method
         - body: {
-            username: string,
+            email: string,
             password: string
         }
         - response: {
