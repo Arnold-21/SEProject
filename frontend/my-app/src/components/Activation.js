@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function (props) {
 
@@ -10,18 +12,16 @@ export default function (props) {
   let location = useLocation();
 
   let currentId = location.state;
-  let result = "empty";
 
   async function activate(event) {
 
     event.preventDefault();
     try {
-        await axios.get("https://SE-Backend.strangled.net/api/register/confirm/" + code + "/" + currentId).then(function (response) {
-          result = response.success;
-          console.log(result);
-      }).then(navigate("/main"));;
+        await axios.get("https://SE-Backend.strangled.net/api/register/confirm/" + code + "/" + currentId + "/").then(function (response) {
+      });
+      navigate("/auth");
     } catch (err) {
-        alert(err.error);
+        toast(err.response.data.error);
     }
 }
 
@@ -47,6 +47,7 @@ export default function (props) {
           </div>
         </div>
       </form>
+      <ToastContainer />
     </div>
   )
 }

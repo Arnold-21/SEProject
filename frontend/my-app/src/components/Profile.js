@@ -1,8 +1,11 @@
 import React, { useState } from "react"
+import NavMenu from "./NavMenu"
 
 export default function (props) {
 
   return (
+    <div>
+      <NavMenu/>
     <div className="Auth-form-container">
       <form className="Auth-form">
         <div className="Auth-form-content">
@@ -49,6 +52,7 @@ export default function (props) {
           </div>
         </div>
       </form>
+    </div>
     </div>
   )
 }

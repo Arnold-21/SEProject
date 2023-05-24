@@ -1,7 +1,10 @@
 import React, { useState } from "react"
 import axios from "axios";
-import useToken from "./useToken";
 import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import useToken from './useToken';
+import useRefresh from './useRefresh';
 
 export default function (props) {
   let [authMode, setAuthMode] = useState("signin")
@@ -19,24 +22,28 @@ export default function (props) {
   let navigate = useNavigate();
 
   const { token, setToken } = useToken();
+  const { refresh, setRefresh } = useRefresh();
 
   async function login(event) {
 
     event.preventDefault();
     try {
-        await axios.post("https://SE-Backend.strangled.net/api/token", {
+        await axios.post("https://SE-Backend.strangled.net/api/token/", {
 
             email: email,
             password: password,
 
         }).then(function (response) {
-          setToken(response.access);
-          console.log(response.access);
+          const access = response.data.access;
+          const refresh = response.data.refresh;
+          setToken(access);
+          setRefresh(refresh);
+          console.log(response.data.access);
       });
       navigate("/main");
 
     } catch (err) {
-        alert(err.detail);
+        toast(err.response.data.detail);
     }
 }
 
@@ -44,7 +51,7 @@ async function register(event) {
 
   event.preventDefault();
   try {
-      await axios.post("https://SE-Backend.strangled.net/api/register", {
+      await axios.post("https://SE-Backend.strangled.net/api/register/", {
 
           first_name: firstName,
           last_name: lastName,
@@ -52,16 +59,15 @@ async function register(event) {
           email: email,
 
       }).then(function (response) {
-        currentId = response.success;
-        console.log(response.success);
+        currentId = response.data.success;
+        console.log(response.data.success);
     });
-    navigate({
-      pathname: '/activate',
+    navigate('/activate',{
         state: currentId // your data array of objects
     });
 
   } catch (err) {
-      alert(err.response.data);
+      toast(err.response.data.error);
   }
 }
 
@@ -107,6 +113,7 @@ async function register(event) {
             </p>
           </div>
         </form>
+        <ToastContainer />
       </div>
     )
   }
@@ -169,6 +176,7 @@ async function register(event) {
           </div>
         </div>
       </form>
+      <ToastContainer />
     </div>
   )
 }

@@ -1,7 +1,11 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom";
+import jwt_decode from "jwt-decode";
+import useToken from './useToken';
+import NavMenu from './NavMenu';
 
 class ImageGrid extends React.Component {
-    
+
     constructor(props) {
         super(props);
         this.state = { 
@@ -57,9 +61,23 @@ class ImageGrid extends React.Component {
 
 export default function (props) {
 
+    const { token, setToken } = useToken();
+
+    const [decoded, setDecoded] = useState({});
+
+    useEffect(() => {
+        if(token)
+        setDecoded(jwt_decode(token));
+      }, []);
+
     return (
+        <div>
+      <NavMenu/>
         <div className="container-fluid py-3">
+            
+            <h4 className="text-center font-weight-light text-light mb-3">{decoded.role}</h4>
             <ImageGrid />
+        </div>
         </div>
     )
   }
