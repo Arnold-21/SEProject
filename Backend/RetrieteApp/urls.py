@@ -7,7 +7,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('api/token/', myTokenObtainPariView.as_view()),
+    path('api/token/', myTokenObtainPairView.as_view()),
     path('api/token/refresh/', TokenRefreshView.as_view()),
     path('api/register/', RegisterView.as_view()),
     path('api/register/confirm/<int:code>/<int:id>/', RegisterConfirmView.as_view()),

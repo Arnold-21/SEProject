@@ -3,8 +3,9 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 import datetime
 import os
 
-# Creating user model and usermanager, for django cli usercreation
+# Creating user model and usermanager, (usermanager for django cli usercreation)
 class UserManager(BaseUserManager):
+    #Creating a normal user, with role: Regular, with neccessary information for the user
     def create_user(self, first_name: str, last_name: str, email: str, role: str = "Regular", password: str = None, is_staff: bool = False, is_superuser: bool = False):
         if not email:
             raise ValueError("User must have an email")
@@ -25,6 +26,7 @@ class UserManager(BaseUserManager):
 
         return user
     
+    #Creating an admin user, with the neccesary information and role: Admin
     def create_superuser(self, first_name: str, last_name: str, email: str, password: str):
         user = self.create_user(
             first_name=first_name,
@@ -39,6 +41,10 @@ class UserManager(BaseUserManager):
 
         return user
 
+#The custom User django model:
+    # First_name, last_name, role for user detail
+    # Email, password is for authentification
+    # Confirmation_code, confirmation_start is used for both the registration and account recovery
 class User(AbstractUser):
     class Role(models.TextChoices):
         REGULAR = "Regular", 'Regular'
@@ -58,12 +64,13 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ["last_name", "first_name"]
 
 
-#modell for the destination objects
+#Helper function for creating the filepath, with the help of the relative path to the images folder, and time + name for avoiding naming conflicts
 def filepath(request, filename):
     timeNow = datetime.datetime.now().strftime('%Y%m%d%H:%M:%S')
     name = "%s%s" % (timeNow, filename)
     return os.path.join('images/', name)
 
+#Geolocaton model
 class Geolocation(models.Model):
     country = models.CharField(max_length=100)
     county = models.CharField(max_length=100)
@@ -71,6 +78,7 @@ class Geolocation(models.Model):
     street = models.CharField(max_length=100)
     number = models.CharField(max_length=100)
 
+#Destination model
 class Destination(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()

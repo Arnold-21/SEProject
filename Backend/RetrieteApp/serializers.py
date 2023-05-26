@@ -5,7 +5,7 @@ from .models import *
 
 User = get_user_model()
 
-#Token serializer
+#Custom token serializer to put the user_id, and role in the token, that's sent to frontend
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
@@ -16,7 +16,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         return token
     
-#User Serializer
+#User serializer for getting the user details, and the id, for potential use on the frontend
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -28,7 +28,7 @@ class GeolocationSerializer(serializers.ModelSerializer):
         model = Geolocation
         fields = "__all__"
 
-#Destination Serializer
+#Destination Serializer, with the location serialized for more detail, basically for get requests
 class DestinationSerializer(serializers.ModelSerializer):
     location = GeolocationSerializer(read_only=True)
     
@@ -36,6 +36,7 @@ class DestinationSerializer(serializers.ModelSerializer):
         model = Destination
         fields = "__all__"
 
+#Destination serializer for put requests, for easier use
 class SimpleDestinationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Destination

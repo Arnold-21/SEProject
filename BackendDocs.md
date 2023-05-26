@@ -114,12 +114,12 @@
         - error-Response: {
             error: string / detail: string
         }
-8. 'api/privatelist/'
+8. 'api/privatelist/?page=<number>'
     - Given permission, it returns back the users private bucket list, or the user can add a new destination
     - header: {
         Authorization: "Bearer "  + (access token)
     }
-        - GET method
+        - GET method (page number neccessary in the url)
             - response: {
                 [
                     {
@@ -231,9 +231,9 @@
         - error-Response: {
             error: string / detail: string
         }
-11. path('api/publiclist/', PublicListView.as_view()),
+11. 'api/publiclist/?page=<number>'
     - Retrieves the public destinations
-    - GET method
+    - GET method (page in the url is required)
         - response: [{
             "id": int,
             "location": {
@@ -255,12 +255,12 @@
         - error-Response: {
             error: string / detail: string
         }
-12. 'api/admin/publiclist/'
+12. 'api/admin/publiclist/?page=<number>'
     - Given permission, it returns back the public list, or the admin can add a new destination
     - header: {
         Authorization: "Bearer "  + (access token)
     }
-        - GET method
+        - GET method (page in the url is required)
             - response: {
                 [
                     {

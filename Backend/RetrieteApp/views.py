@@ -13,10 +13,12 @@ User = get_user_model()
 
 # Create view to get the jwt auth token
 # Gets the custom token serializer, which will put the neccessary information in the token for the frontend client
-class myTokenObtainPariView(TokenObtainPairView):
+class myTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
 # View to register a new account and to activate it
+# Creates a new account, which is not activated, so it cannot be used, until confirmation
+# It either gives back a an error message, if some information is not correct, or success, with the user id, if everything went according to plan
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
         error, message = saveUser(request.data)
@@ -24,6 +26,9 @@ class RegisterView(APIView):
             return Response({"error": message}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"success": message}, status=status.HTTP_200_OK)
     
+#View to confirm an account, gets the user id, and the code, sent to email via the url
+#If the user id and code doesnt match an error message is sent to the frontend
+#Othervise a success is sent
 class RegisterConfirmView(APIView):
     def get(self, request, code, id, *args, **kwargs):
         error, message = confirmRegistration(code, id)
@@ -32,6 +37,8 @@ class RegisterConfirmView(APIView):
         return Response({"success": message}, status=status.HTTP_200_OK)
     
 #User detail view, which handles get, put and delete requests
+#The functionalities handled by the view, are account_modification, account_deletion and seeing account_detail
+#The account holder only, has permission to theese functionalities
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -44,7 +51,9 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
             return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"success": message}, status=status.HTTP_200_OK)
     
-#View to send change password code
+#View to recover an account
+#The user gives an email, if the email has an account attached, a code will be sent to the email, and a success message as response
+#If the email doesnt have an account attached, an error message will be sent back
 class UserPasswordGetCode(APIView):
     def post(self, request, *args, **kwargs):
         error, message = sendRecoveryCode(request.data.get("email"))
@@ -52,7 +61,9 @@ class UserPasswordGetCode(APIView):
             return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"success": message}, status=status.HTTP_200_OK)
 
-#View to actually change the password
+#The view gets the code and user id from url, and a password in the request body
+#If the id and code doesnt match, and error will be sent back
+#Otherwise the password will be changed, and a success message will be sent back
 class UserPasswordChange(APIView):
     def put(self, request, id, code, *args, **kwargs):
         error, message = recoverPassword(request.data, id, code)
@@ -60,13 +71,16 @@ class UserPasswordChange(APIView):
             return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"success": message}, status=status.HTTP_200_OK)
     
-#View for accessing private bucket list, get and post
+#View which handles the get and post requests for a private bucket list
+#Only authenticated users can get access to these functionalities
 class PrivateBucketListView(generics.ListCreateAPIView):
     queryset = Destination.objects.all()
     serializer_class = DestinationSerializer
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
 
+    #If the page number is not given, an appropiate error message will be sent back
+    #Otherwise the users destinations
     def get(self, request, *args, **kwargs):
         #Check permission and if the page number was provided
         self.check_permissions(request=request)
@@ -75,6 +89,7 @@ class PrivateBucketListView(generics.ListCreateAPIView):
             return Response({'error': "No page number was given"}, status=status.HTTP_400_BAD_REQUEST)
         return Response(getPrivateBucketList(request.user.id, int(pageNumber)), status=status.HTTP_200_OK)
     
+    #Post request first checks if all given data is valid, than creates the objects for the destination
     def post(self, request, *args, **kwargs):
         #Add the user to the data, so the frontend doesn't need to send it
         geolocation = {}
@@ -101,7 +116,8 @@ class PrivateBucketListView(generics.ListCreateAPIView):
         return Response(message, status=status.HTTP_200_OK)
     
 
-# View to update and delete a given bucket list
+# View to update, delete and see a given bucket list
+#Only the users whose destinations are under question can change these parts
 class PrivateBucketListDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Destination.objects.all()
     serializer_class = DestinationSerializer
@@ -141,6 +157,8 @@ class PrivateBucketListDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 #View to add destination to public list
+#Only the users which are the owners of the destination object can access this functionality
+#If something fails, and appropiate error message is sent, otherwise a success message
 class PrivateToPublicHandler(APIView):
     permission_classes = [IsAuthenticated, usersDestinationPermission]
 
@@ -153,6 +171,7 @@ class PrivateToPublicHandler(APIView):
         return Response({"success": message}, status=status.HTTP_200_OK)
     
 #View to get public list for all users
+#If something fails, and appropiate error message is sent, otherwise the destination list
 class PublicListView(APIView):
     def get(self, request, *args, **kwargs):
         pageNumber = request.query_params.get("page")
@@ -160,12 +179,14 @@ class PublicListView(APIView):
             return Response({'error': "No page number was given"}, status=status.HTTP_400_BAD_REQUEST)
         return Response(getPublicList(int(pageNumber)), status=status.HTTP_200_OK)
     
-#View for accessing private bucket list, get and post
+#View for accessing the public destination list, with get and post requests
+#These functionalities are only available for admin users
 class PublicAdminListView(generics.ListCreateAPIView):
     queryset = Destination.objects.all()
     serializer_class = DestinationSerializer
     permission_classes = [IsAuthenticated, isAdminRole]
 
+    #If something fails, and appropiate error message is sent, otherwise the destination list
     def get(self, request, *args, **kwargs):
         #Check permission and if the page number was provided
         self.check_permissions(request=request)
@@ -174,9 +195,9 @@ class PublicAdminListView(generics.ListCreateAPIView):
             return Response({'error': "No page number was given"}, status=status.HTTP_400_BAD_REQUEST)
         return Response(getPublicList(int(pageNumber)), status=status.HTTP_200_OK)
     
+    #Checks if everything is correct with the sent data, if not an error message is sent, otherwise the created destination list
     def post(self, request, *args, **kwargs):
         #Add the user to the data, so the frontend doesn't need to send it
-         #Add the user to the data, so the frontend doesn't need to send it
         geolocation = {}
         geolocation["country"] = request.data.get("country")
         geolocation["county"] = request.data.get("county")
@@ -200,7 +221,9 @@ class PublicAdminListView(generics.ListCreateAPIView):
             return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
         return Response(message, status=status.HTTP_200_OK)
     
-# View to update and delete a given public list destination
+# View to update, delete and see a given public list destination
+#Theses functionalities are onlly available to admin users
+#If something fails, and appropiate error message is sent, otherwise the appropiate response
 class PublicAdminListDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Destination.objects.all()
     serializer_class = DestinationSerializer

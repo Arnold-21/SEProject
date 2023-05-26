@@ -11,7 +11,7 @@ from .models import *
 
 User = get_user_model()
 
-#Registering a new user
+# Registering a new user
 # The function takes the neccessary information provided, and creates a new user
 def saveUser(data):
     #Getting the neccessary data
@@ -22,7 +22,7 @@ def saveUser(data):
 
     #Check if the email and the password is correct by the application standards
     try:
-            validate_email(email)
+        validate_email(email)
     except ValidationError:
             return (True, "Incorrect email format")
     if not re.search("[a-z]", password) or not re.search("[A-Z]", password) or not re.search("[0-9]", password) or not re.search("[\.,\$\+]", password) or len(password) < 8:
@@ -151,7 +151,7 @@ def recoverPassword(data, id, code):
          
     #Check user data, if the password can truly be changed
     user = User.objects.get(id=id)
-    if user.confirmation_code != str(code) or user.confirmation_code is None:
+    if user.confirmation_code != str(code) or user.confirmation_code is None or not user.is_active:
         return (True, "Invalid authentification code given!")
     
     currentTime = timezone.now()
@@ -173,7 +173,10 @@ def getPrivateBucketList(id, page):
 #Function to change a destination to public list
 def PrivateToPublic(id):
     #Get the object with given id
-    dest: Destination = Destination.objects.get(id=id)
+    try:
+        dest: Destination = Destination.objects.get(id=id)
+    except:
+        return (True, "No destination found with given id")
     if dest.isPublic == True:
         return (True, "Destination is already public")
     
@@ -198,8 +201,6 @@ def postDestinationHandler(request, id, version):
     destData["userID"] = request.user.id
     if version == "Public":
         destData["isPublic"] = True
-
-    print(destData)
 
     serializer = SimpleDestinationSerializer(data=destData)
     if serializer.is_valid():
@@ -255,5 +256,4 @@ def putAdminDestinationHandler(data, dest):
         return (False, serializer.data)
     else:
         return (True, "Invalid parameters")
-    
     
