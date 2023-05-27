@@ -21,7 +21,7 @@ class myTokenObtainPairView(TokenObtainPairView):
 # It either gives back a an error message, if some information is not correct, or success, with the user id, if everything went according to plan
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
-        error, message = saveUser(request.data)
+        error, message = UserController.saveUser(request.data)
         if error:
             return Response({"error": message}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"success": message}, status=status.HTTP_200_OK)
@@ -31,7 +31,7 @@ class RegisterView(APIView):
 #Othervise a success is sent
 class RegisterConfirmView(APIView):
     def get(self, request, code, id, *args, **kwargs):
-        error, message = confirmRegistration(code, id)
+        error, message = UserController.confirmRegistration(code, id)
         if error:
             return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"success": message}, status=status.HTTP_200_OK)
@@ -46,7 +46,7 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated, isUserObjectPermission]
 
     def put(self, request, id, *args, **kwargs):
-        error, message = updateUser(request.data, id)
+        error, message = UserController.updateUser(request.data, id)
         if error:
             return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"success": message}, status=status.HTTP_200_OK)
@@ -56,7 +56,7 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
 #If the email doesnt have an account attached, an error message will be sent back
 class UserPasswordGetCode(APIView):
     def post(self, request, *args, **kwargs):
-        error, message = sendRecoveryCode(request.data.get("email"))
+        error, message = UserController.sendRecoveryCode(request.data.get("email"))
         if error:
             return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"success": message}, status=status.HTTP_200_OK)
@@ -66,7 +66,7 @@ class UserPasswordGetCode(APIView):
 #Otherwise the password will be changed, and a success message will be sent back
 class UserPasswordChange(APIView):
     def put(self, request, id, code, *args, **kwargs):
-        error, message = recoverPassword(request.data, id, code)
+        error, message = UserController.recoverPassword(request.data, id, code)
         if error:
             return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"success": message}, status=status.HTTP_200_OK)
@@ -87,7 +87,7 @@ class PrivateBucketListView(generics.ListCreateAPIView):
         pageNumber = request.query_params.get("page")
         if pageNumber is None:
             return Response({'error': "No page number was given"}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(getPrivateBucketList(request.user.id, int(pageNumber)), status=status.HTTP_200_OK)
+        return Response(DestinationController.getPrivateBucketList(request.user.id, int(pageNumber)), status=status.HTTP_200_OK)
     
     #Post request first checks if all given data is valid, than creates the objects for the destination
     def post(self, request, *args, **kwargs):
@@ -110,7 +110,7 @@ class PrivateBucketListView(generics.ListCreateAPIView):
             return Response({'error': "Incorrect geolocation"}, status=status.HTTP_400_BAD_REQUEST)
         
 
-        error, message = postDestinationHandler(request, id, "Private")
+        error, message = DestinationController.postDestinationHandler(request, id, "Private")
         if error:
             return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
         return Response(message, status=status.HTTP_200_OK)
@@ -150,7 +150,7 @@ class PrivateBucketListDetail(generics.RetrieveUpdateDestroyAPIView):
             return Response({'error': "Incorrect geolocation"}, status=status.HTTP_400_BAD_REQUEST)
         
 
-        error, message = putDestinationHandler(data, dest)
+        error, message = DestinationController.putDestinationHandler(data, dest)
         if error:
             return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
         return Response(message, status=status.HTTP_200_OK)
@@ -165,7 +165,7 @@ class PrivateToPublicHandler(APIView):
     def put(self, request, id, *args, **kwargs):
         self.check_permissions(request=request)
 
-        error, message = PrivateToPublic(id)
+        error, message = DestinationController.PrivateToPublic(id)
         if error:
             return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"success": message}, status=status.HTTP_200_OK)
@@ -177,7 +177,7 @@ class PublicListView(APIView):
         pageNumber = request.query_params.get("page")
         if pageNumber is None:
             return Response({'error': "No page number was given"}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(getPublicList(int(pageNumber)), status=status.HTTP_200_OK)
+        return Response(DestinationController.getPublicList(int(pageNumber)), status=status.HTTP_200_OK)
     
 #View for accessing the public destination list, with get and post requests
 #These functionalities are only available for admin users
@@ -193,7 +193,7 @@ class PublicAdminListView(generics.ListCreateAPIView):
         pageNumber = request.query_params.get("page")
         if pageNumber is None:
             return Response({'error': "No page number was given"}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(getPublicList(int(pageNumber)), status=status.HTTP_200_OK)
+        return Response(DestinationController.getPublicList(int(pageNumber)), status=status.HTTP_200_OK)
     
     #Checks if everything is correct with the sent data, if not an error message is sent, otherwise the created destination list
     def post(self, request, *args, **kwargs):
@@ -216,7 +216,7 @@ class PublicAdminListView(generics.ListCreateAPIView):
             return Response({'error': "Incorrect geolocation"}, status=status.HTTP_400_BAD_REQUEST)
         
 
-        error, message = postDestinationHandler(request, id, "Public")
+        error, message = DestinationController.postDestinationHandler(request, id, "Public")
         if error:
             return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
         return Response(message, status=status.HTTP_200_OK)
@@ -255,7 +255,7 @@ class PublicAdminListDetail(generics.RetrieveUpdateDestroyAPIView):
             return Response({'error': "Incorrect geolocation"}, status=status.HTTP_400_BAD_REQUEST)
         
 
-        error, message = putAdminDestinationHandler(data, dest)
+        error, message = DestinationController.putAdminDestinationHandler(data, dest)
         if error:
             return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
         return Response(message, status=status.HTTP_200_OK)
